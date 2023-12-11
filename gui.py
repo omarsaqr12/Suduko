@@ -3,8 +3,8 @@ from solve import solve, valid,generate_board,find_empty
 import time
 p.font.init()
 class grid:
-    board=generate_board() # we create the board
-    def __init__(self,width,height):
+    def __init__(self,width,height,level):
+        self.board=generate_board(level) # we create the board
         self.rows=9
         self.cols=9
         self.width=width
@@ -55,7 +55,23 @@ class grid:
 
         return False
     
-
+    def hints(self,win): # we use this function to alllow the user to view the solution of the engine while stuck
+        self.update_model()
+        solution=[[self.model[i][j] for j in range (9)]for i in range (9)]
+        solve(solution)
+        find = find_empty(self.model)
+        if not find:
+            return True
+        else:
+            row, col = find
+        print("yeah")
+        self.model[row][col]=solution[row][col]
+        self.cubes[row][col].set(solution[row][col])
+        self.cubes[row][col].draw_change(win, True)
+        self.update_model()
+        p.display.update()
+        p.time.delay(100)
+    
     def sketch(self,val): # this is the initial guess of the user, not the official one
         row,col=self.selected
         self.cubes[row][col].set_temp(val)
@@ -158,10 +174,10 @@ def format_time(secs):
     hour=secs//3600
     mat=" "+str(minute)+":"+ str(sec)
     return mat
-def main():
+def main(level):
     win=p.display.set_mode((540,600))
     p.display.set_caption("Suduko")
-    board=grid(540,540)
+    board=grid(540,540,level)
     key=None
     run=True
     start=time.time()
@@ -194,7 +210,9 @@ def main():
                     board.clear()
                     key=None
                 if event.key == p.K_SPACE:
-                    board.solve_gui(win)                
+                    board.solve_gui(win)   
+                if event.key == p.K_h:
+                    board.hints(win)             
                 if event.key==p.K_RETURN:
                     i,j=board.selected
                     if board.cubes[i][j].temp!=0:
@@ -217,5 +235,4 @@ def main():
             board.sketch(key)
         redraw_window(win,board,play_time,strikes)
         p.display.update()
-main()
 p.quit()
