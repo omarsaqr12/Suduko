@@ -20,17 +20,17 @@ This project provides a Sudoku puzzle generator and solver with varying levels o
 
 To install Pygame, run:
 
-```bash
+\`\`\`bash
 pip install pygame
-```
+\`\`\`
 
 ## Usage
 
 Run the main script to start the Sudoku game:
 
-```bash
+\`\`\`bash
 python main.py
-```
+\`\`\`
 
 The GUI will open, allowing you to select the difficulty level and interact with the puzzle.
 
@@ -54,15 +54,15 @@ The algorithm's difficulty assessment is based on the number of guesses required
 
 ## Research Insights
 
-I decided to make the algorithm depend on the number of guesses the user has to make to solve the puzzle. This can be considered an oversimplification, but if we look at it from the point of view of the number of inputs, we will have to study the distribution of the squares, not just the numbers, making this more of a mathematical research problem. This is considered an oversimplification for several reasons:
+The algorithm relies on the number of guesses a user must make to solve the puzzle, which is considered an oversimplification. However, a more sophisticated approach would involve studying the distribution of the numbers and the squares, making this more of a mathematical research problem. The following points highlight the limitations:
 
-1. **Human Solver Steps**: There are difficult puzzles that can be solved without guessing, but you need to know where to start solving them, which makes this more difficult. Current research estimates how many steps a human solver will need to take to solve a puzzle.
-2. **Number Positioning**: This follows from the previous discussion, but one might consider the positioning of the numbers concerning each other.
+1. **Human Solver Steps**: Difficult puzzles might be solved without guessing if one knows where to start solving them. Current research estimates the steps a human solver will take to solve a puzzle.
+2. **Number Positioning**: The difficulty can also be influenced by how the numbers are positioned relative to each other.
 
 ## Sources
 
 1. [The Model and Algorithm to Estimate the Difficulty Levels of Sudoku Puzzles](https://www.researchgate.net/publication/41940718_The_Model_and_Algorithm_to_Estimate_the_Difficulty_Levels_of_Sudoku_Puzzles)
-2. [Difficulty Rating of Sudoku Puzzles: An Overview and Evaluation](https://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=D7B836A087983F111392D1E2CA32AB1F?doi=10.1.1.437.9472&rep=rep1&type=pdf)
+2. [Difficulty Rating of Sudoku Puzzles: An Overview and Evaluation](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.9472&rep=rep1&type=pdf)
 3. [Python Sudoku Generator and Solver](https://github.com/JoeKarlsson/python-sudoku-generator-solver/tree/master) - This is the source of generating puzzles with a certain difficulty; this project follows the same algorithm with some modifications.
 4. **Additional Inspiration**: The project was inspired by a video from Tech With Tim, with added functionalities such as hint generation, puzzle difficulty selection, and more.
 5. [RutledgePaulV/sudoku-generator](https://github.com/RutledgePaulV/sudoku-generator)
