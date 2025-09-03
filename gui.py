@@ -176,7 +176,7 @@ def format_time(secs):
     return mat
 def main(level):
     win=p.display.set_mode((540,600))
-    p.display.set_caption("Suduko")
+    p.display.set_caption("Sudoku")
     board=grid(540,540,level)
     key=None
     run=True
