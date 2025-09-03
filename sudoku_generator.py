@@ -1,5 +1,15 @@
-##Working code to Generate a puzzle
-# -*- coding: utf-8 -*-
+"""
+Sudoku Puzzle Generator Module
+
+This module contains the core logic for generating Sudoku puzzles with varying
+difficulty levels using advanced backtracking algorithms.
+
+Features:
+- Unique solution guarantee
+- Difficulty-based generation (Easy, Medium, Hard, Insane)
+- Backtracking solver with constraint propagation
+"""
+
 import time
 import copy
 import random

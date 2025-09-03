@@ -1,8 +1,15 @@
+"""
+Sudoku Solver Module
+
+This module provides solving algorithms and validation functions for Sudoku puzzles.
+Includes backtracking solver and board generation functionality.
+"""
+
 from random import randint, shuffle
-import sudoku
+import sudoku_generator
 
 def generate_board(level):
-    board=sudoku.main(level)
+    board=sudoku_generator.main(level)
     return board
 
 

@@ -1,5 +1,13 @@
+"""
+Sudoku Game - Initial Page Module
+
+This module handles the difficulty selection screen for the Sudoku game.
+Provides a GUI interface for choosing between Easy, Medium, Hard, and Insane levels.
+"""
+
 import pygame
 import gui
+
 pygame.init()
 
 
@@ -9,7 +17,7 @@ easy=(0,255,0)
 medium=(0,0,255)
 hard=(165,165,0)
 screen=pygame.display.set_mode([300,450])
-pygame.display.set_caption('Suduko game')
+pygame.display.set_caption('Sudoku Game')
 background=(255,255,255)
 framereate=60
 font=pygame.font.Font('freesansbold.ttf',16)

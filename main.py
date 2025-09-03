@@ -1,47 +1,37 @@
+#!/usr/bin/env python3
+"""
+Sudoku Game - Main Entry Point
+
+A Sudoku puzzle generator and solver with GUI interface.
+Features different difficulty levels: Easy, Medium, Hard, and Insane.
+
+Author: Your Name
+"""
+
+import sys
 import pygame
-import gui
-pygame.init()
+from initial_page import *
 
+def main():
+    """Main entry point for the Sudoku game."""
+    try:
+        # Initialize pygame
+        pygame.init()
+        
+        # Run the initial page (difficulty selection)
+        print("Welcome to Sudoku Game!")
+        print("Select your difficulty level in the GUI window that opens.")
+        
+        # The initial_page.py script will handle the rest
+        # (The code from initial_page.py will run when imported)
+        
+    except KeyboardInterrupt:
+        print("\nGame interrupted by user.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)
+    finally:
+        pygame.quit()
 
-run=True
-insane=(255,0,0)
-easy=(0,255,0)
-medium=(0,0,255)
-hard=(165,165,0)
-screen=pygame.display.set_mode([300,450])
-pygame.display.set_caption('Suduko game')
-background=(255,255,255)
-framereate=60
-font=pygame.font.Font('freesansbold.ttf',16)
-timer=pygame.time.Clock()
-
-def draw_dif(color,y_coord,lev):
-    pygame.draw.circle(screen,color,(30,y_coord),20,5)
-    pygame.draw.rect(screen,color,[70,y_coord-15,200,30])
-    leveldiff=font.render(lev,True,(0,0,0))
-    screen.blit(leveldiff,(78,y_coord-10))
-
-while run:
-    screen.fill(background)
-    draw_dif(easy,50,"easy")
-    draw_dif(medium,150,"medium")
-    draw_dif(hard,250,"hard")
-    draw_dif(insane,350,"insane")
-    pygame.display.flip()
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            run=False
-        elif event.type==pygame.MOUSEBUTTONDOWN:
-            y=pygame.mouse.get_pos()[1]
-            if y>=35 and y<65:
-                level="Easy"
-                gui.main(level)
-            elif y>=135 and y<165:
-                level="Medium"
-                gui.main(level)
-            elif y>=235 and y<265:
-                level="Hard"
-                gui.main(level)
-            elif y>=335 and y<365:
-                level="Insane"
-                gui.main(level)
+if __name__ == "__main__":
+    main()

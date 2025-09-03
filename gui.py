@@ -1,15 +1,25 @@
+"""
+Sudoku GUI Module
+
+This module provides the graphical user interface for the Sudoku game using Pygame.
+Includes the main game grid, individual cells, and all interactive functionality.
+"""
+
 import pygame as p
-from solve import solve, valid,generate_board,find_empty
+from sudoku_solver import solve, valid, generate_board, find_empty
 import time
+
 p.font.init()
-class grid:
+
+
+class Grid:
     def __init__(self,width,height,level):
         self.board=generate_board(level) # we create the board
         self.rows=9
         self.cols=9
         self.width=width
         self.height=height
-        self.cubes=[[Cube(self.board[i][j],i,j,width,height) for i in range(9)] for j in range(9)] # we define each cell of the grid as a cube as this will be benificial when we draw the board and change its state
+        self.cubes=[[Cube(self.board[i][j],i,j,width,height) for i in range(9)] for j in range(9)]
         self.model=None
         self.selected=None
     def update_model(self):
@@ -175,9 +185,10 @@ def format_time(secs):
     mat=" "+str(minute)+":"+ str(sec)
     return mat
 def main(level):
+    """Main game loop for the Sudoku GUI."""
     win=p.display.set_mode((540,600))
     p.display.set_caption("Sudoku")
-    board=grid(540,540,level)
+    board=Grid(540,540,level)
     key=None
     run=True
     start=time.time()
