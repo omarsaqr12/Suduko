@@ -1,249 +1,200 @@
-"""
-Sudoku GUI Module
+"""Pygame interface for the Sudoku puzzle generator and solver."""
 
-This module provides the graphical user interface for the Sudoku game using Pygame.
-Includes the main game grid, individual cells, and all interactive functionality.
-"""
-
-import pygame as p
-from sudoku_solver import solve, valid, generate_board, find_empty
 import time
 
-p.font.init()
+import pygame as p
+from sudoku_solver import generate_board, solve
 
 
 class Grid:
-    def __init__(self,width,height,level):
-        self.board=generate_board(level) # we create the board
-        self.rows=9
-        self.cols=9
-        self.width=width
-        self.height=height
-        self.cubes=[[Cube(self.board[i][j],i,j,width,height) for i in range(9)] for j in range(9)]
-        self.model=None
-        self.selected=None
+    def __init__(self, width, height, level):
+        self.board = generate_board(level)
+        self.solution = [row[:] for row in self.board]
+        if not solve(self.solution):
+            raise ValueError('Generated puzzle is not solvable')
+        self.rows = self.cols = 9
+        self.width, self.height = width, height
+        self.cubes = [
+            [Cube(self.board[r][c], r, c, width, height) for c in range(9)]
+            for r in range(9)
+        ]
+        self.selected = None
+        self.model = [row[:] for row in self.board]
+
     def update_model(self):
-        self.model=[[self.cubes[i][j].value for j in range (self.cols)]for i in range (self.rows)]  # we update the value of the cell
-    def place(self,val): # we check if the entered value is valid or not
-        row,col=self.selected
-        if self.cubes[row][col].value==0:
-            self.cubes[row][col].set(val)
-            self.update_model()
-            if valid(self.model,val,(row,col))and solve(self.model):
-                return True
-            else: 
-                self.cubes[row][col].set(0)
-                self.cubes[row][col].set_temp(0)
-                self.update_model()
-                return False
-    def solve_gui(self,win): # we use this function to alllow the user to view the solution of the engine while stuck
+        self.model = [[self.cubes[r][c].value for c in range(9)] for r in range(9)]
+
+    def place(self, val):
+        if self.selected is None:
+            return False
+        row, col = self.selected
+        if self.board[row][col] != 0 or self.cubes[row][col].value != 0:
+            return False
+        if val != self.solution[row][col]:
+            self.cubes[row][col].set_temp(0)
+            return False
+        self.cubes[row][col].set(val)
+        self.cubes[row][col].set_temp(0)
         self.update_model()
-        find = find_empty(self.model)
-        if not find:
-            return True
-        else:
-            row, col = find
-
-        for i in range(1, 10):
-            if valid(self.model, i, (row, col)):
-                self.model[row][col] = i
-                self.cubes[row][col].set(i)
-                self.cubes[row][col].draw_change(win, True)
-                self.update_model()
-                p.display.update()
-                p.time.delay(100)
-
-                if self.solve_gui(win):
-                    return True
-
-                self.model[row][col] = 0
-                self.cubes[row][col].set(0)
-                self.update_model()
-                self.cubes[row][col].draw_change(win, False)
-                p.display.update()
-                p.time.delay(100)
-
-        return False
-    
-    def hints(self,win): # we use this function to alllow the user to view the solution of the engine while stuck
-        self.update_model()
-        solution=[[self.model[i][j] for j in range (9)]for i in range (9)]
-        solve(solution)
-        find = find_empty(self.model)
-        if not find:
-            return True
-        else:
-            row, col = find
-        print("yeah")
-        self.model[row][col]=solution[row][col]
-        self.cubes[row][col].set(solution[row][col])
-        self.cubes[row][col].draw_change(win, True)
-        self.update_model()
-        p.display.update()
-        p.time.delay(100)
-    
-    def sketch(self,val): # this is the initial guess of the user, not the official one
-        row,col=self.selected
-        self.cubes[row][col].set_temp(val)
-    def draw (self,win):
-        gap=self.width/9
-        for i in range(self.rows+1):
-            if i%3==0 and i!=0:
-                thick=4 #the boundary between the boxes
-            else:
-                thick=2 #the bondary between the cells
-            p.draw.line(win, (200,1,1), (0, i*gap), (self.width, i*gap), thick) #the horizontal lines
-            p.draw.line(win, (100, 0, 0), (i * gap, 0), (i * gap, self.height), thick)#the vertical lines
-        for i in range (self.rows):
-            for j in range (self.cols):
-                self.cubes[i][j].draw(win) #we draw the cubes
-    def select(self,row,col):
-        for i in range(self.rows):
-            for j in range(self.cols):
-                self.cubes[i][j].selected=False #to make sure only one cube is selected at a time
-        self.cubes[row][col].selected=True
-        self.selected=(row,col)
-    def clear(self):
-        row,col=self.selected
-        if self.cubes[row][col].value==0:
-            self.cubes[row][col].set_temp(0) # if the user deleted a value we want to set the initial guess ie temp to 0
-
-
-    def click(self,pos):
-        if pos[0]<self.width and pos[1]<self.height:
-            gap=self.width/9
-            x=pos[0]//gap
-            y=pos[1]//gap
-            return (int(y),int(x))
-        else:
-            return None
-    def is_finished(self):
-        for i in range(self.rows):
-            for j in range(self.cols):
-                if self.cubes[i][j].value==0:
-                    return False
         return True
-class Cube:
-    rows=9
-    cols=9
-    def __init__(self,value,row,col,width,height):
-        self.value=value
-        self.temp=0
-        self.row=row
-        self.col=col
-        self.width=width
-        self.height=height
-        self.selected=False
-    def draw_change(self, win, g=True):
-        fnt = p.font.SysFont("comicsans", 40)
 
-        gap = self.width / 9
-        x = self.col * gap
-        y = self.row * gap
-
-        p.draw.rect(win, (255, 255, 255), (x, y, gap, gap), 0)
-
-        text = fnt.render(str(self.value), 1, (0, 0, 0))
-        win.blit(text, (x + (gap / 2 - text.get_width() / 2), y + (gap / 2 - text.get_height() / 2)))
-        if g:
-            p.draw.rect(win, (0, 255, 0), (x, y, gap, gap), 3)
-        else:
-            p.draw.rect(win, (255, 0, 0), (x, y, gap, gap), 3)
-
-    def set_temp(self,val):
-        self.temp=val
-    def set(self,val):
-        self.value=val
-
-    def draw(self,win):
-        fnt=p.font.SysFont("comicsans",40)
-        gap=self.width/9
-        x=self.col*gap
-        y=self.row*gap
-        if self.temp!=0 and self.value==0:
-            text=fnt.render(str(self.temp),1,(128,128,128))
-            win.blit(text,(x+5,y+5))
-        elif not(self.value==0):
-            text=fnt.render(str(self.value),1,(0,0,0))
-            win.blit(text,(x+gap/2-text.get_width()/2,y+gap/2-text.get_height()/2))
-        if self.selected:
-            p.draw.rect(win,(255,0,0),(x,y,gap,gap),3)
-
-def redraw_window(win,board,time,strikes):
-    win.fill((255,255,255))
-    fnt=p.font.SysFont("comicsans",40)
-    text =fnt.render("Time:"+format_time(time),1,(0,0,0))
-    win.blit(text,(540-200,560-30))
-    strikes=min(strikes,6)
-    text=fnt.render("X "*strikes,1,(255,0,0))
-    win.blit(text,(20,530))
-    board.draw(win)
-def format_time(secs):
-    sec=secs%60
-    minute=secs//60
-    hour=secs//3600
-    mat=" "+str(minute)+":"+ str(sec)
-    return mat
-def main(level):
-    """Main game loop for the Sudoku GUI."""
-    win=p.display.set_mode((540,600))
-    p.display.set_caption("Sudoku")
-    board=Grid(540,540,level)
-    key=None
-    run=True
-    start=time.time()
-    strikes=0
-    while run:
-        play_time=round(time.time()-start)
-        for event in p.event.get():
-            if event.type==p.QUIT:
-                run=False
-            if event.type==p.KEYDOWN:
-                if event.key==p.K_1:
-                    key=1
-                if event.key==p.K_2:
-                    key=2
-                if event.key==p.K_3:
-                    key=3
-                if event.key==p.K_4:
-                    key=4
-                if event.key==p.K_5:
-                    key=5
-                if event.key==p.K_6:
-                    key=6
-                if event.key==p.K_7:
-                    key=7
-                if event.key==p.K_8:
-                    key=8
-                if event.key==p.K_9:
-                    key=9
-                if event.key==p.K_DELETE:
-                    board.clear()
-                    key=None
-                if event.key == p.K_SPACE:
-                    board.solve_gui(win)   
-                if event.key == p.K_h:
-                    board.hints(win)             
-                if event.key==p.K_RETURN:
-                    i,j=board.selected
-                    if board.cubes[i][j].temp!=0:
-                        if board.place(board.cubes[i][j].temp):
-                            print("Success")
-                        else:
-                            print("Wrong")
-                            strikes+=1
-                        key=None
-                        if board.is_finished():
-                            print("Game over")
-                            run=False
-            if event.type==p.MOUSEBUTTONDOWN:
-                pos=p.mouse.get_pos()
-                clicked=board.click(pos)
-                if clicked:
-                    board.select(clicked[1],clicked[0])
-                    key=None
-        if board.selected and key!=None:
-            board.sketch(key)
-        redraw_window(win,board,play_time,strikes)
+    def hints(self, win):
+        """Reveal the solution value of the selected cell, or the first empty cell."""
+        candidate = self.selected
+        if candidate is None or self.cubes[candidate[0]][candidate[1]].value != 0:
+            candidate = next(
+                ((r, c) for r in range(9) for c in range(9)
+                 if self.cubes[r][c].value == 0), None
+            )
+        if candidate is None:
+            return False
+        r, c = candidate
+        self.cubes[r][c].set(self.solution[r][c])
+        self.cubes[r][c].set_temp(0)
+        self.update_model()
+        self.draw(win)
         p.display.update()
-p.quit()
+        return True
+
+    def solve_gui(self, win):
+        """Reveal the known unique solution one cell at a time."""
+        for r in range(9):
+            for c in range(9):
+                if self.cubes[r][c].value == 0:
+                    self.cubes[r][c].set(self.solution[r][c])
+                    self.cubes[r][c].set_temp(0)
+                    self.cubes[r][c].draw_change(win, True)
+                    p.display.update()
+                    p.event.pump()
+                    p.time.delay(45)
+        self.update_model()
+        return True
+
+    def sketch(self, val):
+        if self.selected is not None:
+            r, c = self.selected
+            if self.board[r][c] == 0 and self.cubes[r][c].value == 0:
+                self.cubes[r][c].set_temp(val)
+
+    def draw(self, win):
+        for row in self.cubes:
+            for cube in row:
+                cube.draw(win)
+        gap = self.width / 9
+        for i in range(10):
+            thick = 4 if i % 3 == 0 else 1
+            p.draw.line(win, (80, 80, 80), (0, i * gap), (self.width, i * gap), thick)
+            p.draw.line(win, (80, 80, 80), (i * gap, 0), (i * gap, self.height), thick)
+
+    def select(self, row, col):
+        if not (0 <= row < 9 and 0 <= col < 9):
+            return
+        for line in self.cubes:
+            for cube in line:
+                cube.selected = False
+        self.selected = (row, col)
+        self.cubes[row][col].selected = True
+
+    def clear(self):
+        if self.selected is None:
+            return
+        r, c = self.selected
+        if self.board[r][c] == 0:
+            self.cubes[r][c].set(0)
+            self.cubes[r][c].set_temp(0)
+            self.update_model()
+
+    def click(self, pos):
+        if 0 <= pos[0] < self.width and 0 <= pos[1] < self.height:
+            return int(pos[1] * 9 / self.height), int(pos[0] * 9 / self.width)
+        return None
+
+    def is_finished(self):
+        return all(self.cubes[r][c].value == self.solution[r][c]
+                   for r in range(9) for c in range(9))
+
+
+class Cube:
+    def __init__(self, value, row, col, width, height):
+        self.value, self.row, self.col = value, row, col
+        self.original = value != 0
+        self.temp = 0
+        self.width, self.height = width, height
+        self.selected = False
+
+    def set(self, val):
+        self.value = val
+
+    def set_temp(self, val):
+        self.temp = val
+
+    def draw(self, win):
+        gap = self.width / 9
+        x, y = self.col * gap, self.row * gap
+        if self.original:
+            p.draw.rect(win, (236, 238, 240), (x, y, gap, gap))
+        value = self.value or self.temp
+        if value:
+            font = p.font.SysFont(None, 36 if self.value else 28)
+            color = (20, 20, 20) if self.value else (100, 100, 100)
+            text = font.render(str(value), True, color)
+            win.blit(text, (x + (gap - text.get_width()) / 2,
+                            y + (gap - text.get_height()) / 2))
+        if self.selected:
+            p.draw.rect(win, (40, 100, 210), (x, y, gap, gap), 3)
+
+    def draw_change(self, win, correct=True):
+        self.draw(win)
+        gap = self.width / 9
+        p.draw.rect(win, (0, 150, 80) if correct else (220, 40, 40),
+                    (self.col * gap, self.row * gap, gap, gap), 3)
+
+
+def format_time(seconds):
+    minutes, secs = divmod(int(seconds), 60)
+    return f'{minutes:02d}:{secs:02d}'
+
+
+def main(level):
+    p.init()
+    win = p.display.set_mode((540, 600))
+    p.display.set_caption('Sudoku — ' + level)
+    board = Grid(540, 540, level)
+    start, strikes = time.monotonic(), 0
+    clock = p.time.Clock()
+    running = True
+    finished = False
+    while running:
+        for event in p.event.get():
+            if event.type == p.QUIT:
+                running = False
+            elif event.type == p.MOUSEBUTTONDOWN:
+                clicked = board.click(event.pos)
+                if clicked is not None:
+                    board.select(*clicked)
+            elif event.type == p.KEYDOWN:
+                if event.key == p.K_ESCAPE:
+                    running = False
+                elif event.key in (p.K_DELETE, p.K_BACKSPACE):
+                    board.clear()
+                elif event.key == p.K_h and not finished:
+                    board.hints(win)
+                elif event.key == p.K_SPACE and not finished:
+                    board.solve_gui(win)
+                elif event.key in (p.K_RETURN, p.K_KP_ENTER) and not finished:
+                    if board.selected is not None:
+                        r, c = board.selected
+                        guess = board.cubes[r][c].temp
+                        if guess and not board.place(guess):
+                            strikes += 1
+                elif event.unicode in '123456789' and not finished:
+                    board.sketch(int(event.unicode))
+        finished = board.is_finished()
+        win.fill((255, 255, 255))
+        board.draw(win)
+        font = p.font.SysFont(None, 27)
+        elapsed = format_time(time.monotonic() - start)
+        status = 'Solved!' if finished else f'Time {elapsed}   Mistakes {strikes}'
+        win.blit(font.render(status, True, (25, 25, 25)), (15, 550))
+        p.display.flip()
+        clock.tick(30)
