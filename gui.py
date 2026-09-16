@@ -187,7 +187,7 @@ def main(level):
                         guess = board.cubes[r][c].temp
                         if guess and not board.place(guess):
                             strikes += 1
-                elif event.unicode in '123456789' and not finished:
+                elif event.unicode and event.unicode in '123456789' and not finished:
                     board.sketch(int(event.unicode))
         finished = board.is_finished()
         win.fill((255, 255, 255))
