@@ -1,79 +1,75 @@
-"""
-Sudoku Solver Module
+"""Sudoku constraints and a backtracking solver for 9x9 integer grids.
 
-This module provides solving algorithms and validation functions for Sudoku puzzles.
-Includes backtracking solver and board generation functionality.
+Zero represents an empty cell. ``solve`` modifies its input only on success.
 """
 
-from random import randint, shuffle
-import sudoku_generator
+
+def valid(board, num, pos):
+    """Whether placing a digit at (row, column) violates no Sudoku constraint."""
+    row, col = pos
+    if not (0 <= row < 9 and 0 <= col < 9 and isinstance(num, int) and 1 <= num <= 9):
+        return False
+    if len(board) != 9 or any(len(line) != 9 for line in board):
+        return False
+    if any(board[row][c] == num for c in range(9) if c != col):
+        return False
+    if any(board[r][col] == num for r in range(9) if r != row):
+        return False
+    return not any(
+        board[r][c] == num and (r, c) != pos
+        for r in range(row // 3 * 3, row // 3 * 3 + 3)
+        for c in range(col // 3 * 3, col // 3 * 3 + 3)
+    )
+
+
+def find_empty(board):
+    return next(((r, c) for r in range(9) for c in range(9) if board[r][c] == 0), None)
+
+
+def is_consistent(board):
+    if len(board) != 9 or any(len(row) != 9 for row in board):
+        return False
+    return all(
+        type(board[r][c]) is int and 0 <= board[r][c] <= 9
+        and (board[r][c] == 0 or valid(board, board[r][c], (r, c)))
+        for r in range(9) for c in range(9)
+    )
+
+
+def solve(board):
+    """Solve a consistent puzzle in place, returning whether it has a solution."""
+    if not is_consistent(board):
+        return False
+
+    def search():
+        best = None
+        options = None
+        for r in range(9):
+            for c in range(9):
+                if board[r][c] == 0:
+                    choices = [n for n in range(1, 10) if valid(board, n, (r, c))]
+                    if not choices:
+                        return False
+                    if options is None or len(choices) < len(options):
+                        best, options = (r, c), choices
+        if best is None:
+            return True
+        r, c = best
+        for n in options:
+            board[r][c] = n
+            if search():
+                return True
+        board[r][c] = 0
+        return False
+
+    return search()
+
 
 def generate_board(level):
-    board=sudoku_generator.main(level)
-    return board
+    from sudoku_generator import generate_puzzle
+    return generate_puzzle(level)
 
 
-def solve(bo): #we create a function to solve the puzzle by backtracking, and return true when it is solved
-    find = find_empty(bo)
-    if not find:
-        return True
-    else:
-        row, col = find
-
-    for i in range(1,10):
-        if valid(bo, i, (row, col)):
-            bo[row][col] = i
-
-            if solve(bo):
-                return True
-
-            bo[row][col] = 0
-
-    return False
-
-
-def valid(bo, num, pos): #we use this function to check the validity of every number the user puts in the suduko puzzle
-    # Check row
-    for i in range(len(bo[0])):
-        if bo[pos[0]][i] == num and pos[1] != i:
-            return False
-
-    # Check column
-    for i in range(len(bo)):
-        if bo[i][pos[1]] == num and pos[0] != i:
-            return False
-
-    # Check 3*3 boxes of the grid
-    box_x = pos[1] // 3
-    box_y = pos[0] // 3
-
-    for i in range(box_y*3, box_y*3 + 3):
-        for j in range(box_x * 3, box_x*3 + 3):
-            if bo[i][j] == num and (i,j) != pos:
-                return False
-
-    return True
-
-
-def print_board(bo): # we print all the cells of the board
-    for i in range(len(bo)):
-        if i % 3 == 0 and i != 0:
-            print("- - - - - - - - - - - - - ")
-
-        for j in range(len(bo[0])):
-            if j % 3 == 0 and j != 0:
-                print(" | ", end="")
-
-            if j == 8:
-                print(bo[i][j])
-            else:
-                print(str(bo[i][j]) + " ", end="")
-
-
-def find_empty(bo):
-    for i in range(len(bo)):
-        for j in range(len(bo[0])):
-            if bo[i][j] == 0:
-                return (i, j)  # row, col
-
-    return None
+def print_board(board):
+    for row in board:
+        print(' '.join(str(n) if n else '.' for n in row))
