@@ -1,154 +1,58 @@
-# 🎯 Sudoku Game - Generator & Solver
+# Sudoku: puzzle generator, solver, and Pygame game
 
-[![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/downloads/)
-[![Pygame](https://img.shields.io/badge/Pygame-2.1%2B-green.svg)](https://www.pygame.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+A desktop Sudoku project written in Python. It creates a filled 9×9 board, removes clues while checking that **exactly one solution remains**, and provides a keyboard-and-mouse game with answer checking, hints, and animated solution reveal.
 
-A comprehensive Sudoku puzzle generator and solver with an interactive GUI. Features multiple difficulty levels and intelligent puzzle generation using advanced backtracking algorithms.
+This is a learning project, not a human-difficulty-rated puzzle service. The four difficulty names are **clue-count presets** rather than guaranteed difficulty ratings; an individual puzzle can retain more clues than its target if removing another would destroy uniqueness.
 
-![Sudoku Game Screenshot](https://via.placeholder.com/600x400/000000/FFFFFF?text=Sudoku+Game+Screenshot)
+## Run the game
 
-## ✨ Features
+Requires Python 3.9+ and a graphical desktop (or an SDL-compatible display).
 
-- 🎲 **Smart Puzzle Generation**: Creates unique Sudoku puzzles with guaranteed single solutions
-- 🧠 **Intelligent Solver**: Advanced backtracking algorithm that can solve any valid Sudoku
-- 🎯 **4 Difficulty Levels**: Easy, Medium, Hard, and Insane challenges
-- 💡 **Hint System**: Get hints when you're stuck - the AI will fill in the next logical move
-- 🎮 **Interactive GUI**: Beautiful Pygame-based interface with mouse and keyboard controls
-- ⚡ **Auto-Solver**: Watch the AI solve puzzles step-by-step with visual feedback
-- 🎨 **Clean Interface**: Intuitive design with color-coded feedback and timing
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.7 or higher
-- pip package manager
-
-### Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/sudoku-game.git
-   cd sudoku-game
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run the game**
-   ```bash
-   python main.py
-   ```
-
-## 🎮 How to Play
-
-1. **Launch the game** - Run `python main.py`
-2. **Select difficulty** - Choose from Easy, Medium, Hard, or Insane
-3. **Play the puzzle**:
-   - Click on a cell to select it
-   - Type numbers 1-9 to enter values
-   - Press `Enter` to confirm your entry
-   - Press `Delete` to clear a cell
-   - Press `H` for a hint
-   - Press `Space` to auto-solve the puzzle
-
-### Controls
-
-| Key      | Action        |
-| -------- | ------------- |
-| `1-9`    | Enter number  |
-| `Enter`  | Confirm entry |
-| `Delete` | Clear cell    |
-| `H`      | Get hint      |
-| `Space`  | Auto-solve    |
-| `Mouse`  | Select cells  |
-
-## 🧮 Algorithm & Technical Details
-
-### Core Algorithm
-
-The Sudoku generator uses an advanced **backtracking algorithm** with the following features:
-
-- **Unique Solution Guarantee**: Every generated puzzle has exactly one valid solution
-- **Difficulty Assessment**: Based on the number of logical guesses required during solving
-- **Constraint Propagation**: Efficiently eliminates impossible values using Sudoku rules
-
-### Difficulty Levels
-
-| Level      | Guesses Required | Characteristics             |
-| ---------- | ---------------- | --------------------------- |
-| **Easy**   | 0                | Solvable using basic logic  |
-| **Medium** | 1-2              | Requires some deduction     |
-| **Hard**   | 3-7              | Complex logical reasoning   |
-| **Insane** | 8+               | Advanced solving techniques |
-
-## 📁 Project Structure
-
-```
-sudoku-game/
-├── main.py                 # Main entry point
-├── initial_page.py         # Difficulty selection GUI
-├── gui.py                  # Main game interface
-├── sudoku_generator.py     # Puzzle generation logic
-├── sudoku_solver.py        # Solving algorithms
-├── requirements.txt        # Dependencies
-├── README.md              # Project documentation
-└── .gitignore             # Git ignore rules
+```bash
+git clone https://github.com/omarsaqr12/Suduko.git
+cd Suduko
+python -m pip install -r requirements.txt
+python main.py
 ```
 
-## 🔬 Research & Methodology
+Select Easy, Medium, Hard, or Insane from the opening screen. Click a cell and type a digit 1–9 to pencil in a candidate; press **Enter** to check and commit it. **Delete/Backspace** clears a non-given cell. **H** reveals a solution digit (not a logical explanation), **Space** reveals the remaining solution, and **Esc** closes the game. A wrong attempt counts as a mistake. Given clues cannot be changed.
 
-### Difficulty Assessment Limitations
+For a deterministic puzzle in Python:
 
-The current difficulty assessment is based on **guess count**, which has some limitations:
+```python
+import random
+from sudoku_generator import generate_puzzle, count_solutions
+from sudoku_solver import solve
 
-1. **Strategic Solving**: Some puzzles can be solved without guessing using advanced techniques
-2. **Number Distribution**: Placement patterns significantly affect perceived difficulty
-3. **Human vs. Algorithm**: Human solving strategies differ from algorithmic approaches
+puzzle = generate_puzzle('Medium', random.Random(42))
+assert count_solutions(puzzle) == 1
+answer = [row[:] for row in puzzle]
+assert solve(answer)
+```
 
-### Future Research Directions
+## How it works
 
-- 🌐 **Browser Extension**: Web-based puzzle solver
-- 📊 **Benchmark Analysis**: Compare with human-rated puzzle difficulties
-- 🧪 **Distribution Studies**: Analyze number placement patterns
-- 🤖 **Advanced AI**: Implement human-like solving strategies
+- [`sudoku_generator.py`](sudoku_generator.py): shuffles digits, rows within bands, columns within stacks, and band/stack order to produce valid complete grids. It removes clues in randomized order and **counts at most two solutions** using backtracking with minimum-remaining-values cell selection. A removal is kept only when there is one solution.
+- [`sudoku_solver.py`](sudoku_solver.py): checks the row, column, and 3×3 box constraints, rejects inconsistent full grids, and solves by recursive backtracking. A failed solve restores tentative placements.
+- [`gui.py`](gui.py): tracks the immutable clues, mutable player entries, and a precomputed solution separately. Move checking does not run an in-place solve on the displayed grid.
+- [`initial_page.py`](initial_page.py) and [`main.py`](main.py): explicit difficulty-selection and application entry points; importing modules does not open a window.
 
-## 🤝 Contributing
+The clue targets are Easy **40**, Medium **34**, Hard **30**, and Insane **26**; they are **not** ratings based on logical techniques, number of guesses, or human studies. Puzzle generation may take longer for the lower-clue presets.
 
-Contributions are welcome! Here's how to get started:
+## Verification
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+```bash
+python -m unittest discover -s tests -v
+```
 
-## 📚 References & Inspiration
+[`tests/test_sudoku.py`](tests/test_sudoku.py) checks several fixed random seeds across all four presets, independently counts solutions, verifies that counting does not modify the puzzle, exercises an invalid completed board, and checks that GUI state remains consistent after correct and incorrect entries. [GitHub Actions](.github/workflows/test.yml) runs these tests with a headless SDL driver. This test set is finite; it does not prove the code has no defects or measure puzzle difficulty or performance across all random seeds.
 
-- [Difficulty Estimation Research](https://www.researchgate.net/publication/41940718_The_Model_and_Algorithm_to_Estimate_the_Difficulty_Levels_of_Sudoku_Puzzles)
-- [Sudoku Difficulty Rating Overview](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.9472&rep=rep1&type=pdf)
-- [Python Sudoku Generator](https://github.com/JoeKarlsson/python-sudoku-generator-solver) - Algorithm inspiration
-- Tech With Tim - GUI development inspiration
-- [Mathematical Contest Modeling](https://sites.math.washington.edu/~morrow/mcm/team2306.pdf)
+## Limitations
 
-## 📄 License
+The interface requires Pygame and has no browser/mobile build. Hinting reveals the answer rather than deriving an explainable next move. The animated reveal blocks normal input briefly. No accessible gameplay screenshot is currently included; the old README's placeholder image was not an actual capture.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+The repository name is retained as `Suduko` so existing links continue to work. The game and puzzle are correctly called **Sudoku** here.
 
-## 🌟 Support
+## License
 
-If you found this project helpful, please consider:
-
-- ⭐ Starring the repository
-- 🐛 Reporting bugs or issues
-- 💡 Suggesting new features
-- 🤝 Contributing to the codebase
-
----
-
-**Made with ❤️ and Python** | _Happy Sudoku Solving!_ 🎯
+See the existing [MIT license](LICENSE). No license changes are part of this update.
